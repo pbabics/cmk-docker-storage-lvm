@@ -1,0 +1,58 @@
+pool_storage_limits = ( 90.0, 95.0 )
+metadata_storage_limits = ( 90.0, 95.0 )
+
+# the inventory function (dummy)
+def inventory_docker_temp(info):
+  for value in info:
+    name = ' '.join(value[:-1]);
+    if name == 'Pool data usage':
+      yield name, "pool_storage_limits"
+    elif name == 'Metadata usage':
+      yield name, "metadata_storage_limits"
+    else:
+      yield name, None
+
+# the check function (dummy)
+def check_docker_temp(item, params, info):
+  for data in info:
+    value = data[-1]
+    name = ' '.join(data[:-1])
+    if name == item:
+
+      if item == 'Status':
+        if value == 'OK':
+          return 0, "Docker running"
+        elif value == 'UNKNOWN':
+          return 3, "UNKOWN status";
+        else:
+          return 2, 'Docker is NOT running'
+
+      elif name == 'Pool data usage':
+        warn, crit = params
+        value = float(value)
+        if value >= crit:
+          return 2, "Pool data storage usage: %3.2f%%" % float(value)
+        elif value >= warn:
+          return 1, "Pool data storage usage: %3.2f%%" % float(value)
+        else:
+          return 0, "Pool data storage usage: %3.2f%%" % float(value)
+
+      elif item == 'Metadata usage':
+        warn, crit = params
+        value = float(value)
+        if value >= crit:
+          return 0, "Pool metadata storage usage: %3.2f%%" % float(value)
+        elif value >= warn:
+          return 0, "Pool metadata storage usage: %3.2f%%" % float(value)
+        else:
+          return 0, "Pool metadata storage usage: %3.2f%%" % float(value)
+
+
+      return 3, "Sorry - not implemented"
+
+# declare the check to Check_MK
+check_info["docker_storage_lvm"] = {
+    'check_function':            check_docker_temp,
+    'inventory_function':        inventory_docker_temp,
+    'service_description':       'Docker %s',
+}

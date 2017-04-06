@@ -1,0 +1,18 @@
+#!/bin/bash
+
+STORAGE_VOLUME='/dev/vg-docker/pool'
+echo '<<<docker_storage_lvm>>>'
+if [ -e "/usr/bin/systemctl" ]; then
+  if [ "`systemctl is-active docker.service`" == "active" ]; then
+    echo -e "Status\tOK"
+    pool_data="`lvdisplay "$STORAGE_VOLUME" | fgrep 'Allocated pool data' | tr -d '[:alpha:] %'`"
+    echo -e "Pool data usage\t${pool_data}"
+    pool_metadata="`lvdisplay "$STORAGE_VOLUME" | fgrep 'Allocated metadata' | tr -d '[:alpha:] %'`"
+    echo -e "Metadata usage\t${pool_metadata}"
+  else
+    echo "Status FAILED"
+  fi
+else
+  echo "Status UKNOWN"
+fi
+
